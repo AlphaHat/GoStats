@@ -1,13 +1,13 @@
 package stats
 
-// 
+//
 // stats.go testing
 //
 // Author:   Gary Boone
-// 
+//
 // Test:
 //   go test stats.go stats_test.go
-// 
+//
 // Benchmark:
 //   go test stats.go stats_test.go -bench='.'
 //
@@ -20,9 +20,9 @@ package stats
 //   sqrt(var(a)*(n-1)/n);sd(a);skewness(a);sqrt(n*(n-1))/(n-2)*skewness(a);
 //   kurtosis(a)-3;(n-1)/(n-2)/(n-3)*((n+1)*(kurtosis(a)-3)+6)
 //
-// The above prints out a list of values corresponding to the list of test results shown 
+// The above prints out a list of values corresponding to the list of test results shown
 // in the tests below.
-// 
+//
 // Unpacking:
 //   a=c(1,2,3,4,5);                               // creates a list of input values
 //   n=length(a);n;                                // print the Count()
@@ -115,7 +115,7 @@ func TestUpdate2(t *testing.T) {
 	checkNaN(d.SampleKurtosis(), "SampleKurtosis", t)
 }
 
-// Update() 3 values. 
+// Update() 3 values.
 func TestUpdate3(t *testing.T) {
 	var d Stats
 	d.Update(2.3)
@@ -273,6 +273,23 @@ func TestArrayStats2(t *testing.T) {
 	checkFloat64(StatsSampleKurtosis(a), 3.179835417592894, TOL, "SampleKurtosis", t)
 }
 
+func TestArraySorting(t *testing.T) {
+	a := []float64{1.0, -2.0, 13.0, 47.0, 115.0, -0.03, -123.4, 23.0, -23.04, 12.3}
+	i, v := StatsMedian(a)
+	checkInt(i, 9, "Median", t)
+	checkFloat64(v, 12.3, TOL, "Median", t)
+	ia, va := StatsTop(2, a)
+	checkInt(ia[0], 4, "Top", t)
+	checkFloat64(va[0], 115, TOL, "Top", t)
+	checkInt(ia[1], 3, "Top", t)
+	checkFloat64(va[1], 47, TOL, "Top", t)
+	ia, va = StatsBottom(2, a)
+	checkInt(ia[0], 6, "Bottom", t)
+	checkFloat64(va[0], -123.4, TOL, "Bottom", t)
+	checkInt(ia[1], 8, "Bottom", t)
+	checkFloat64(va[1], -23.04, TOL, "Bottom", t)
+}
+
 //
 //
 // Benchmark tests
@@ -287,7 +304,7 @@ func BenchmarkUpdate(b *testing.B) {
 	}
 }
 
-// Test the incremental Variance function by itself. This result is how fast the 
+// Test the incremental Variance function by itself. This result is how fast the
 // Variance is calculated not including the time to incrementally update the Stats
 // structure with 10 values.
 func BenchmarkPopulationVariance10(b *testing.B) {
@@ -303,7 +320,7 @@ func BenchmarkPopulationVariance10(b *testing.B) {
 	}
 }
 
-// Test the incremental Variance function by itself. This result is how fast the 
+// Test the incremental Variance function by itself. This result is how fast the
 // Variance is calculated _including_ the time to incrementally update the Stats
 // structure with 10 values. Therefore this result can be compared to the CalcVariance
 // function operating on 10 values.
@@ -343,7 +360,7 @@ func BenchmarkCalcSampleKurtosis10(b *testing.B) {
 }
 
 // Find the time to calculate Sample Kurtosis on an input array 100k random values.
-// The benchmark will repeat this test b.N times to determine a stable time. The 
+// The benchmark will repeat this test b.N times to determine a stable time. The
 // resulting stable time is the time for the calculation on 100k values.
 func BenchmarkCalcSampleKurtosis100k(b *testing.B) {
 	b.StopTimer()
@@ -404,7 +421,7 @@ func TestUpdate02(t *testing.T) {
 	checkNaN(d.SampleKurtosis(), "SampleKurtosis", t)
 }
 
-// Update() 3 0 values. 
+// Update() 3 0 values.
 func TestUpdate03(t *testing.T) {
 	var d Stats
 	d.Update(0.0)
@@ -425,7 +442,7 @@ func TestUpdate03(t *testing.T) {
 	checkNaN(d.SampleKurtosis(), "SampleKurtosis", t)
 }
 
-// Update() 4 0 values. 
+// Update() 4 0 values.
 func TestUpdate04(t *testing.T) {
 	var d Stats
 	d.Update(0.0)

@@ -2,9 +2,9 @@ package stats
 
 //
 // stats.go
-// 
+//
 // Author:   Gary Boone
-// 
+//
 // Copyright (c) 2011-2013 Gary Boone <gary.boone@gmail.com>.
 //
 // Changes:
@@ -21,8 +21,8 @@ package stats
 //
 //    Obtain the descriptive stats at any time by calling Mean(), Variance(), etc.
 //
-// 3. Batch -- just calculate results for the passed-in array. These functions are prefixed by 
-//    "Calc". 
+// 3. Batch -- just calculate results for the passed-in array. These functions are prefixed by
+//    "Calc".
 //
 // See stats_test.go for examples of each.
 //
@@ -34,6 +34,7 @@ package stats
 
 import (
 	"math"
+	"sort"
 )
 
 // Data structure to contain accumulating values and moments
@@ -41,8 +42,8 @@ type Stats struct {
 	n, min, max, sum, mean, m2, m3, m4 float64
 }
 
-// 
-// 
+//
+//
 // Accessor Functions
 //
 //
@@ -72,7 +73,7 @@ func (d *Stats) Mean() float64 {
 }
 
 //
-// 
+//
 // Incremental Functions
 //
 //
@@ -160,13 +161,78 @@ func (d *Stats) SampleKurtosis() float64 {
 	return (d.n - 1.0) / ((d.n - 2.0) * (d.n - 3.0)) * ((d.n+1.0)*populationKurtosis + 6.0)
 }
 
+// This segment is necessary for sorting
+
+type DataWithPosition struct {
+	Position  []int
+	Value     []float64
+	Ascending bool
+}
+
+func (d *DataWithPosition) Len() int {
+	return len(d.Value)
+}
+
+func (d *DataWithPosition) Less(i, j int) bool {
+	if d.Ascending {
+		return d.Value[i] < d.Value[j]
+	}
+	return d.Value[i] > d.Value[j]
+}
+
+func (d *DataWithPosition) Swap(i, j int) {
+	d.Position[i], d.Position[j] = d.Position[j], d.Position[i]
+	d.Value[i], d.Value[j] = d.Value[j], d.Value[i]
+}
+
 //
 //
 // Batch functions
 //
 // These are non-incremental functions that operate only on the data given them.
 // They're prefixed with 'Calc'.
-// 
+//
+func StatsMedian(data []float64) (int, float64) {
+	i, v := sortWithPosition(data, true)
+
+	midpoint := int(len(data) / 2)
+
+	return i[midpoint], v[midpoint]
+}
+
+func StatsTop(n int, data []float64) ([]int, []float64) {
+	i, v := sortWithPosition(data, false)
+
+	if n < len(data) {
+		n = len(data)
+	}
+
+	return i[:n], v[:n]
+}
+
+func StatsBottom(n int, data []float64) ([]int, []float64) {
+	i, v := sortWithPosition(data, true)
+
+	if n < len(data) {
+		n = len(data)
+	}
+
+	return i[:n], v[:n]
+}
+
+func sortWithPosition(data []float64, ascending bool) ([]int, []float64) {
+	s := &DataWithPosition{make([]int, len(data), len(data)), make([]float64, len(data), len(data)), ascending}
+
+	for i, v := range data {
+		s.Position[i] = i
+		s.Value[i] = v
+	}
+
+	sort.Sort(s)
+
+	return s.Position, s.Value
+}
+
 func StatsCount(data []float64) int {
 	return len(data)
 }
